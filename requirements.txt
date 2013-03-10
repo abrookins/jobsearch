@@ -1,0 +1,4 @@
+pyelasticsearch==0.3
+python-dateutil==2.1
+termcolor==1.1.0
+requests==1.1.0
