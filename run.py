@@ -41,7 +41,7 @@ parser.add_argument('--exclude-provider', nargs='*', dest='exclude_providers',
 def get_providers(provider_input):
     """
     Return a set of providers by looking up, in `default_providers`, a provider
-    for each provider name  given in the iterable ``provider_input``.
+    for each provider name given in the iterable ``provider_input``.
     """
     if not provider_input:
         return set()
@@ -53,6 +53,11 @@ def get_providers(provider_input):
 
 
 def get_job_output(job):
+    """
+    Get text output for ``job``, a dict of data returned by ElasticSearch,
+    colored with ANSI escape codes. If the user chose to show job descriptions,
+    then convert the HTML into Markdown and display it.
+    """
     job['title'] = colored(job['title'], 'green')
     job['location'] = colored(job['location'], 'cyan')
     job['company'] = colored(job['company'], 'blue')
@@ -72,9 +77,10 @@ def get_job_output(job):
 
 def load(args):
     """
-    Load jobs.
+    Load jobs from external data sources.
     """
-    chosen_providers = get_providers(args.providers) or set(default_providers.values())
+    chosen_providers = get_providers(args.providers) or set(
+        default_providers.values())
     excluded_providers = get_providers(args.exclude_providers) or set()
 
     for provider in chosen_providers - excluded_providers:
@@ -87,7 +93,7 @@ def load(args):
 
 def search(args):
     """
-    Search jobs.
+    Search jobs. Sort by age in days. Pages output.
     """
     result = es.search({
         'query': {
