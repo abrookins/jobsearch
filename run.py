@@ -68,11 +68,13 @@ def get_job_output(job):
         pass
 
     if args.show_desc:
-        line = u'{title} ({age} days ago)\n{company} ({location})\n{description}{url}\nID: {id}\n\n'
+        output = u'{title} ({age} days ago)\n{company} ({location})\n' \
+               u'{description}{url}\nID: {id}\n\n'
     else:
-        line = u'{title} ({age} days ago)\n{company} ({location})\n{url}\nID: {id}\n\n'
+        output = u'{title} ({age} days ago)\n{company} ({location})\n{url}' \
+               u'\nID: {id}\n\n'
 
-    return line.format(**job)
+    return output.format(**job)
 
 
 def load(args):
