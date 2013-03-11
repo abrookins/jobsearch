@@ -17,7 +17,7 @@ but cross-service duplicates are not.
 ## The "load.sh" script
 
 I've included a `load.sh` script that I use to retrieve and index data every
-day. It executes several `--load`` commands consecutively to build a nice set
+day. It executes several `--load` commands consecutively to build a nice set
 of job data.
 
 # Searching
