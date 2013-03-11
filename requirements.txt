@@ -3,3 +3,4 @@ python-dateutil==2.1
 termcolor==1.1.0
 requests==1.1.0
 html2text==3.200.3
+ipdb==0.7

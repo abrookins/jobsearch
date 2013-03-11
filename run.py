@@ -49,7 +49,7 @@ def get_providers(provider_input):
     found = {default_providers.get(provider, None) for provider in
              chain.from_iterable(provider_input)}
 
-    return filter(None, found)
+    return set(filter(None, found))
 
 
 def get_job_output(job):
@@ -84,11 +84,26 @@ def load(args):
     excluded_providers = get_providers(args.exclude_providers) or set()
 
     for provider in chosen_providers - excluded_providers:
-        data = provider.get(location=args.location, query=args.query)
-        result = es.bulk_index(provider.name.lower(), 'job', data)
+        name = provider.name
+        params = {
+            'location': args.location,
+            'query': args.query
+        }
+        data = provider.get(**params)
+        tagline = '{name} data for location {location} and ' \
+                  'query {query}'.format(name=name, **params)
 
-        print 'Loaded {name} Data: '.format(name=provider.name)
-        print 'Result: ', result
+        try:
+            result = es.bulk_index(provider.name.lower(), 'job', data)
+        except ValueError:
+            print('Skipping {tagline}. 0 items found.'.format(tagline=tagline))
+            continue
+
+        num_items = len(result['items'])
+
+        print('Loaded {tagline}. Result: {num_items} jobs in {time} '
+              'seconds'.format(tagline=tagline, num_items=num_items,
+                               time=result['took']))
 
 
 def search(args):
@@ -108,7 +123,7 @@ def search(args):
     jobs = []
     output = u''
 
-    print 'max age', args.max_age
+    print('max age', args.max_age)
 
     for result in result['hits']['hits']:
         data = result['_source']
