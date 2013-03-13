@@ -10,7 +10,7 @@ The script operates in two modes -- "load" and "search."
 
 # Loading Data
 
-The `--load` command retrieves job data and sends it to an ElasticSearch
+The `load` command retrieves job data and sends it to an ElasticSearch
 instance to be indexed. Duplicates from a given web service are usually caught,
 but cross-service duplicates are not.
 
@@ -22,9 +22,10 @@ of job data.
 
 # Searching
 
-The `--search` command searches the ElasticSearch instance for jobs matching
-a query and optionally a location, though some results may not have a meaningful
-location value.
+The `search` command searches the ElasticSearch instance for jobs matching
+a query. E.g.:
+
+`./run.py search
 
 # Requirements
 

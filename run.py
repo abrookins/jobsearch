@@ -24,18 +24,24 @@ default_providers = {
 }
 
 parser = argparse.ArgumentParser(description='Search for jobs.')
-parser.add_argument('--load', dest='load', action='store_true', help='load jobs')
-parser.add_argument('--search', dest='search', action='store_true', help='find jobs')
-parser.add_argument('--shell', dest='shell', action='store_true', help='interactive shell')
-parser.add_argument('--location', dest='location', help='job location')
-parser.add_argument('--query', dest='query', help='job query (e.g., "python"')
-parser.add_argument('--show-description', dest='show_desc', action='store_true', help='show job descriptions')
-parser.add_argument('--num-results', dest='num_results', help='number of results to include', default=100)
-parser.add_argument('--max-age', dest='max_age', help='max age (days) of jobs', default=100)
-parser.add_argument('--provider', nargs='*', dest='providers',
-                    help='job provider', action='append')
-parser.add_argument('--exclude-provider', nargs='*', dest='exclude_providers',
-                    help='exclude a job provider', action='append')
+subparsers = parser.add_subparsers(dest='command')
+
+load_cmd = subparsers.add_parser('load', help='load jobs')
+load_cmd.add_argument('--location', dest='location', help='job location')
+load_cmd.add_argument('--provider', metavar='PROVIDER', nargs='*',
+                      dest='providers', help='job provider', action='append')
+load_cmd.add_argument('--exclude-provider', metavar='PROVIDER', nargs='*',
+                      dest='exclude_providers', help='exclude a job provider',
+                      action='append')
+load_cmd.add_argument('--query', help='job query (e.g., "python"')
+
+search_cmd = subparsers.add_parser('search', help='find jobs')
+search_cmd.add_argument('query', help='job query (e.g., "python"')
+search_cmd.add_argument('--show-description', dest='show_desc', action='store_true', help='show job descriptions')
+search_cmd.add_argument('--num-results', dest='num_results', help='number of results to include', default=100)
+search_cmd.add_argument('--max-age', dest='max_age', help='max age (days) of jobs', default=100)
+
+subparsers.add_parser('shell', help='interactive shell')
 
 
 def get_providers(provider_input):
@@ -125,8 +131,6 @@ def search(args):
     jobs = []
     output = u''
 
-    print('max age', args.max_age)
-
     for result in result['hits']['hits']:
         data = result['_source']
         created_at = dateutil.parser.parse(data['created_at'])
@@ -158,9 +162,10 @@ def shell(args):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    if args.search:
+
+    if args.command == 'search':
         search(args)
-    elif args.load:
+    elif args.command == 'load':
         load(args)
-    elif args.shell:
+    elif args.command == 'shell':
         shell(args)
