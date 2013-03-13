@@ -25,7 +25,7 @@ of job data.
 The `search` command searches the ElasticSearch instance for jobs matching
 a query. E.g.:
 
-`./run.py search
+`./run.py search "python portland"`
 
 # Requirements
 
