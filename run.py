@@ -37,9 +37,12 @@ load_cmd.add_argument('--query', help='job query (e.g., "python"')
 
 search_cmd = subparsers.add_parser('search', help='find jobs')
 search_cmd.add_argument('query', help='job query (e.g., "python"')
-search_cmd.add_argument('--show-description', dest='show_desc', action='store_true', help='show job descriptions')
-search_cmd.add_argument('--num-results', dest='num_results', help='number of results to include', default=100)
-search_cmd.add_argument('--max-age', dest='max_age', help='max age (days) of jobs', default=100)
+search_cmd.add_argument('--show-description', dest='show_desc',
+                        action='store_true', help='show job descriptions')
+search_cmd.add_argument('--num-results', dest='num_results',
+                        help='number of results to include', default=100)
+search_cmd.add_argument('--max-age', dest='max_age',
+                        help='max age (days) of jobs', default=100)
 
 subparsers.add_parser('shell', help='interactive shell')
 
