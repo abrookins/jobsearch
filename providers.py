@@ -1,6 +1,10 @@
 import json
+import logging
 import urllib
 import requests
+
+
+logger = logging.getLogger(__file__)
 
 
 class BaseProvider(object):
@@ -34,11 +38,17 @@ class BaseProvider(object):
         """
         Get jobs for this provider and return them
         """
-        r = requests.get(self.make_url(**kwargs))
+        url = self.make_url(**kwargs)
+        try:
+            r = requests.get(url)
+        except requests.exceptions.ConnectionError:
+            logger.exception('Could not connect to URL: %s' % url)
+            return
 
         try:
             data = json.loads(r.content)
         except TypeError:
+            logger.exception('Could not load JSON response from: %s' % url)
             return
 
         return [self.prepare_document(d, **kwargs) for d in

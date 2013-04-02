@@ -43,6 +43,7 @@ search_cmd.add_argument('--num-results', dest='num_results',
                         help='number of results to include', default=100)
 search_cmd.add_argument('--max-age', dest='max_age',
                         help='max age (days) of jobs', default=100)
+search_cmd.add_argument('--no-page', dest='no_page', action='store_true')
 
 subparsers.add_parser('shell', help='interactive shell')
 
@@ -152,6 +153,10 @@ def search(args):
 
     for job in jobs:
         output += get_job_output(job)
+
+    if args.no_page:
+        print output
+        return
 
     pydoc.pager(output.encode('utf-8'))
 
