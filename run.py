@@ -15,14 +15,6 @@ from termcolor import colored
 from pyelasticsearch import ElasticSearch
 
 
-es = ElasticSearch(os.environ['ELASTIC_SEARCH_URL'])
-
-default_providers = {
-    'github': providers.Github(),
-    'indeed': providers.Indeed(os.environ['INDEED_API_KEY']),
-    'craigslist': providers.Craigslist()
-}
-
 parser = argparse.ArgumentParser(description='Search for jobs.')
 subparsers = parser.add_subparsers(dest='command')
 
@@ -34,6 +26,13 @@ load_cmd.add_argument('--exclude-provider', metavar='PROVIDER', nargs='*',
                       dest='exclude_providers', help='exclude a job provider',
                       action='append')
 load_cmd.add_argument('--query', help='job query (e.g., "python"')
+load_cmd.add_argument('--elastic-search-url',
+                      dest='elastic_search_url',
+                      help='URL to the ElasticSearch instance',
+                      default=os.environ.get('ELASTIC_SEARCH_URL', None))
+load_cmd.add_argument('--indeed-api-key',
+                      dest='indeed_api_key', help='Indeed.com API key',
+                      default=os.environ.get('INDEED_API_KEY', None))
 
 search_cmd = subparsers.add_parser('search', help='find jobs')
 search_cmd.add_argument('query', help='job query (e.g., "python"')
@@ -44,13 +43,16 @@ search_cmd.add_argument('--num-results', dest='num_results',
 search_cmd.add_argument('--max-age', dest='max_age',
                         help='max age (days) of jobs', default=100)
 search_cmd.add_argument('--no-page', dest='no_page', action='store_true')
-
+search_cmd.add_argument('--elastic-search-url',
+                        dest='elastic_search_url',
+                        help='URL to the ElasticSearch instance',
+                        default=os.environ.get('ELASTIC_SEARCH_URL', None))
 subparsers.add_parser('shell', help='interactive shell')
 
 
-def get_providers(provider_input):
+def get_providers(provider_input, default_providers):
     """
-    Return a set of providers by looking up, in `default_providers`, a provider
+    Return a set of providers by looking up, in ``default_providers``, a provider
     for each provider name given in the iterable ``provider_input``.
     """
     if not provider_input:
@@ -65,17 +67,18 @@ def get_providers(provider_input):
 def get_job_output(job):
     """
     Get text output for ``job``, a dict of data returned by ElasticSearch,
-    colored with ANSI escape codes. If the user chose to show job descriptions,
-    then convert the HTML into Markdown and display it.
+    and color it with ANSI escape codes. If the user chose to show job
+    descriptions, then convert the HTML into Markdown and display it.
     """
     job['title'] = colored(job['title'], 'green')
     job['location'] = colored(job['location'], 'cyan')
     job['company'] = colored(job['company'], 'blue')
 
-    try:
-        job['description'] = html2text.html2text(job['description'])
-    except HTMLParser.HTMLParseError:
-        pass
+    if job['description']:
+        try:
+            job['description'] = html2text.html2text(job['description'])
+        except HTMLParser.HTMLParseError:
+            pass
 
     if args.show_desc:
         output = u'{title} ({age} days ago)\n{company} ({location})\n' \
@@ -91,9 +94,16 @@ def load(args):
     """
     Load jobs from external data sources.
     """
-    chosen_providers = get_providers(args.providers) or set(
-        default_providers.values())
-    excluded_providers = get_providers(args.exclude_providers) or set()
+    es = ElasticSearch(args.elastic_search_url)
+    default_providers = {
+        'github': providers.Github(),
+        'indeed': providers.Indeed(args.indeed_api_key),
+        'craigslist': providers.Craigslist()
+    }
+    chosen_providers = get_providers(
+        args.providers, default_providers) or set(default_providers.values())
+    excluded_providers = get_providers(
+        args.exclude_providers, default_providers) or set()
 
     for provider in chosen_providers - excluded_providers:
         name = provider.name
@@ -122,6 +132,7 @@ def search(args):
     """
     Search jobs. Sort by age in days. Pages output.
     """
+    es = ElasticSearch(args.elastic_search_url)
     result = es.search({
         'query': {
             'text': {
